@@ -1,8 +1,7 @@
-
 import React, { useContext } from 'react';
 import { AppContext } from '../App';
 import { UserType } from '../types';
-import { Calendar, User, Settings, Car, ShoppingCart, Users, X, Package, BarChart3, FileText, MapPin, Bell, LogOut, Home, Eye } from 'lucide-react';
+import { Calendar, User, Settings, Car, ShoppingCart, Users, X, Package, BarChart3, FileText, MapPin, Bell, LogOut, Home, Eye, Brush } from 'lucide-react';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -29,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen, currentScreen, set
                 { icon: Eye, label: 'Histórico de Vendas', screen: 'modification_history' },
             ],
             [UserType.VENDEDOR_EMBELEZAMENTO]: [
-                { icon: Package, label: 'Gerenciar Embelezamento', screen: 'manage_embellishment' }
+                { icon: Brush, label: 'Gerenciar Embelezamento', screen: 'manage_embellishment' }
             ],
             [UserType.VENDEDOR_ACESSORIO]: [
                 { icon: Package, label: 'Gerenciar Acessórios', screen: 'manage_accessories' }

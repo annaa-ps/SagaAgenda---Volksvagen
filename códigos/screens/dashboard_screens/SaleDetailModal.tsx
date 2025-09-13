@@ -1,13 +1,20 @@
-
 import React, { useContext, useState } from 'react';
 import { AppContext } from '../../App';
 import { Sale, UserType } from '../../types';
-import { X, Calendar, Clock, Car, User, Edit, Save, Plus, Trash2, Brush, Wrench, Info } from 'lucide-react';
+import { X, Calendar, Clock, Car, User, Edit, Save, Plus, Trash2, Brush, Wrench, Info, Tag } from 'lucide-react';
 
 interface SaleDetailModalProps {
     sale: Sale;
     onClose: () => void;
 }
+
+const statusStyles: { [key in Sale['status']]: { label: string } } = {
+    aguardando_cliente: { label: 'Aguardando Cliente' },
+    agendado: { label: 'Agendado' },
+    preparando: { label: 'Em Preparação' },
+    entregue: { label: 'Entregue' },
+    cancelado: { label: 'Cancelado' },
+};
 
 const SaleDetailModal: React.FC<SaleDetailModalProps> = ({ sale, onClose }) => {
     const { user, setSales, addNotification } = useContext(AppContext);
@@ -17,7 +24,10 @@ const SaleDetailModal: React.FC<SaleDetailModalProps> = ({ sale, onClose }) => {
 
     const canEnterEditMode = user?.type === UserType.ADMINISTRADOR ||
                            user?.type === UserType.VENDEDOR_ACESSORIO ||
-                           user?.type === UserType.VENDEDOR_EMBELEZAMENTO;
+                           user?.type === UserType.VENDEDOR_EMBELEZAMENTO ||
+                           user?.type === UserType.PREPARADOR;
+
+    const isSpecialtyVendor = user?.type === UserType.VENDEDOR_ACESSORIO || user?.type === UserType.VENDEDOR_EMBELEZAMENTO;
 
     const handleSave = () => {
         let modificationAction = 'Dados da venda atualizados.';
@@ -27,8 +37,9 @@ const SaleDetailModal: React.FC<SaleDetailModalProps> = ({ sale, onClose }) => {
             modificationAction = "Acessórios atualizados."
         } else if(sale.hasEmbellishment !== editableSale.hasEmbellishment){
              modificationAction = "Embelezamento atualizado."
+        } else if(user?.type === UserType.PREPARADOR && sale.status !== editableSale.status){
+             modificationAction = `Status alterado para "${statusStyles[editableSale.status].label}".`
         }
-
 
         setSales(prev => prev.map(s => s.id === sale.id ? {
             ...editableSale,
@@ -80,7 +91,9 @@ const SaleDetailModal: React.FC<SaleDetailModalProps> = ({ sale, onClose }) => {
                         {renderField('Cliente', sale.clientName, User)}
                         {renderField('CPF', sale.clientCpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'), User)}
                         {renderField('Veículo', `${sale.model} - ${sale.chassi}`, Car)}
-                        {isEditing && user?.type === UserType.ADMINISTRADOR ? (
+                         {!isSpecialtyVendor && renderField('Status', statusStyles[sale.status].label, Tag)}
+                        
+                        {!isSpecialtyVendor && (isEditing && user?.type === UserType.ADMINISTRADOR ? (
                             <div>
                                 <label className="text-xs font-semibold text-gray-500 flex items-center"><Calendar size={12} className="mr-1.5"/>Data Agendada</label>
                                 <div className="flex gap-2">
@@ -100,6 +113,21 @@ const SaleDetailModal: React.FC<SaleDetailModalProps> = ({ sale, onClose }) => {
                             </div>
                         ) : (
                             renderField('Data Agendada', sale.confirmedDate ? `${new Date(sale.confirmedDate).toLocaleDateString('pt-BR')} às ${sale.confirmedTime}` : 'Não agendado', Calendar)
+                        ))}
+
+                        {isEditing && user?.type === UserType.PREPARADOR && (
+                             <div>
+                                <label className="text-xs font-semibold text-gray-500 flex items-center"><Tag size={12} className="mr-1.5"/>Alterar Status</label>
+                                <select 
+                                    value={editableSale.status}
+                                    onChange={(e) => setEditableSale({...editableSale, status: e.target.value as Sale['status']})}
+                                    className="w-full text-sm p-1 border rounded bg-white"
+                                >
+                                    {Object.entries(statusStyles).map(([statusKey, {label}]) => (
+                                        <option key={statusKey} value={statusKey}>{label}</option>
+                                    ))}
+                                </select>
+                            </div>
                         )}
                     </div>
                     
@@ -137,17 +165,19 @@ const SaleDetailModal: React.FC<SaleDetailModalProps> = ({ sale, onClose }) => {
                         </div>
                     </div>
 
-                    <div>
-                        <h4 className="font-semibold text-gray-700 border-b pb-2">Histórico de Modificações</h4>
-                        <ul className="mt-4 space-y-3 text-sm max-h-40 overflow-y-auto pr-2">
-                            {sale.modifications.slice().reverse().map((mod, index) => (
-                                <li key={index} className="flex justify-between items-center text-gray-600">
-                                    <span><span className="font-semibold">{mod.user}:</span> {mod.action}</span>
-                                    <span className="text-xs text-gray-400 whitespace-nowrap">{new Date(mod.date).toLocaleString('pt-BR')}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {!isSpecialtyVendor && (
+                        <div>
+                            <h4 className="font-semibold text-gray-700 border-b pb-2">Histórico de Modificações</h4>
+                            <ul className="mt-4 space-y-3 text-sm max-h-40 overflow-y-auto pr-2">
+                                {editableSale.modifications.slice().reverse().map((mod, index) => (
+                                    <li key={index} className="flex justify-between items-center text-gray-600">
+                                        <span><span className="font-semibold">{mod.user}:</span> {mod.action}</span>
+                                        <span className="text-xs text-gray-400 whitespace-nowrap">{new Date(mod.date).toLocaleString('pt-BR')}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

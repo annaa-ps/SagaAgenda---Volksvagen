@@ -1,5 +1,4 @@
-
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { AppContext } from '../App';
 import { MOCK_USERS, USER_TYPE_LABELS } from '../constants';
 import { UserType } from '../types';
@@ -39,8 +38,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             return;
         }
 
-        const cleanCpf = cpfCnpj.replace(/\D/g, '');
-        const user = MOCK_USERS[cleanCpf];
+        const cleanIdentifier = cpfCnpj.replace(/\D/g, '');
+        const user = MOCK_USERS[cleanIdentifier];
 
         if (!user) {
             setError('CPF/CNPJ não encontrado.');
@@ -55,11 +54,29 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
             return;
         }
 
-        login(cleanCpf, user.type, user.name);
+        login(cleanIdentifier, user.type, user.name);
         onClose();
     };
     
     const userTypes = Object.values(UserType);
+
+    const handleUserTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedUserType(e.target.value as UserType);
+        setCpfCnpj('');
+        setError('');
+    };
+
+    const loginIdPlaceholder = useMemo(() => {
+        if (!selectedUserType) return 'CPF ou CNPJ';
+        if (
+            selectedUserType === UserType.VENDEDOR_EMBELEZAMENTO ||
+            selectedUserType === UserType.VENDEDOR_ACESSORIO
+        ) {
+            return 'CNPJ';
+        }
+        return 'CPF';
+    }, [selectedUserType]);
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -75,12 +92,12 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                         <div className="relative">
                             <select
                                 value={selectedUserType || ''}
-                                onChange={(e) => setSelectedUserType(e.target.value as UserType)}
-                                className="w-full px-4 py-3 border rounded-lg appearance-none bg-white focus:ring-2 focus:ring-primary focus:outline-none"
+                                onChange={handleUserTypeChange}
+                                className={`w-full px-4 py-3 border rounded-lg appearance-none bg-white focus:ring-2 focus:ring-primary focus:outline-none ${!selectedUserType ? 'text-gray-500' : 'text-gray-900'}`}
                             >
                                 <option value="" disabled>Selecione o tipo de perfil</option>
                                 {userTypes.map(type => (
-                                    <option key={type} value={type}>{USER_TYPE_LABELS[type]}</option>
+                                    <option key={type} value={type} className="text-gray-900">{USER_TYPE_LABELS[type]}</option>
                                 ))}
                             </select>
                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -91,7 +108,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
                             value={cpfCnpj}
                             onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
                             className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary"
-                            placeholder="CPF ou CNPJ"
+                            placeholder={loginIdPlaceholder}
                         />
                         <input
                             type="password"

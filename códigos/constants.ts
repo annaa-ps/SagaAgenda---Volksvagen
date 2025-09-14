@@ -8,8 +8,8 @@ export const MOCK_USERS: { [key: string]: { type: UserType, name: string, passwo
     '22233344455': { type: UserType.PREPARADOR, name: 'Ana Souza', password: '123' },
     '33344455566': { type: UserType.ADMINISTRADOR, name: 'Roberto Lima', password: '123' },
     '44455566677': { type: UserType.ENTREGADOR, name: 'Pedro Alves', password: '123' },
-    '55566677788': { type: UserType.VENDEDOR_EMBELEZAMENTO, name: 'Lucas Estética', password: '123' },
-    '66677788899': { type: UserType.VENDEDOR_ACESSORIO, name: 'Carla Acessórios', password: '123' }
+    '11222333000144': { type: UserType.VENDEDOR_EMBELEZAMENTO, name: 'Lucas Estética', password: '123' },
+    '44555666000177': { type: UserType.VENDEDOR_ACESSORIO, name: 'Carla Acessórios', password: '123' }
 };
 
 export const MOCK_SALES: Sale[] = [
